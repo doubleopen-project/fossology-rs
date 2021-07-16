@@ -180,7 +180,7 @@ impl Fossology {
         let mut responses: Vec<HashQueryResponse> = Vec::with_capacity(hashes.len());
         let mut hashes_queried = 0;
 
-        for chunk in hashes.chunks(500) {
+        for chunk in hashes.chunks(10000) {
             debug!("Querying hashes: {}/{}", hashes_queried, hashes.len());
 
             let mut response: Vec<HashQueryResponse> = self
