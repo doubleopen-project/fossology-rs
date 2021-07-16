@@ -178,8 +178,11 @@ impl Fossology {
         hashes: &[HashQueryInput],
     ) -> Result<Vec<HashQueryResponse>, FossologyError> {
         let mut responses: Vec<HashQueryResponse> = Vec::with_capacity(hashes.len());
+        let mut hashes_queried = 0;
 
         for chunk in hashes.chunks(500) {
+            debug!("Querying hashes: {}/{}", hashes_queried, hashes.len());
+
             let mut response: Vec<HashQueryResponse> = self
                 .client
                 .post(&format!("{}/filesearch", self.uri))
@@ -188,6 +191,8 @@ impl Fossology {
                 .json(&chunk)
                 .send()?
                 .json()?;
+
+            hashes_queried += chunk.len();
 
             responses.append(&mut response);
         }
