@@ -177,16 +177,22 @@ impl Fossology {
         &self,
         hashes: &[HashQueryInput],
     ) -> Result<Vec<HashQueryResponse>, FossologyError> {
-        let response: Vec<HashQueryResponse> = self
-            .client
-            .post(&format!("{}/filesearch", self.uri))
-            .timeout(Duration::from_secs(1800))
-            .bearer_auth(&self.token)
-            .json(&hashes)
-            .send()?
-            .json()?;
+        let mut responses: Vec<HashQueryResponse> = Vec::with_capacity(hashes.len());
 
-        Ok(response)
+        for chunk in hashes.chunks(500) {
+            let mut response: Vec<HashQueryResponse> = self
+                .client
+                .post(&format!("{}/filesearch", self.uri))
+                .timeout(Duration::from_secs(1800))
+                .bearer_auth(&self.token)
+                .json(&chunk)
+                .send()?
+                .json()?;
+
+            responses.append(&mut response);
+        }
+
+        Ok(responses)
     }
 
     /// Get license details by short name.
