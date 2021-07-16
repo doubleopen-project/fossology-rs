@@ -181,6 +181,7 @@ impl Fossology {
         let mut hashes_queried = 0;
 
         for chunk in hashes.chunks(10000) {
+            hashes_queried += chunk.len();
             debug!("Querying hashes: {}/{}", hashes_queried, hashes.len());
 
             let mut response: Vec<HashQueryResponse> = self
@@ -191,8 +192,6 @@ impl Fossology {
                 .json(&chunk)
                 .send()?
                 .json()?;
-
-            hashes_queried += chunk.len();
 
             responses.append(&mut response);
         }
