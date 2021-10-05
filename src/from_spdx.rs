@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 HH Partners
+//
+// SPDX-License-Identifier: MIT
+
     // TODO: Should move to Fossology crate.
     /// Get scanner results and license conclusions for the files in SPDX
     /// found on the Fossology instance.
