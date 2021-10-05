@@ -4,7 +4,7 @@
 
 [package]
 name = "fossology-rs"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Mikko Murto <mikko.murto@hhpartners.fi>"]
 edition = "2018"
 license = "MIT"
