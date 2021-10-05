@@ -216,7 +216,7 @@ mod tests {
         ]
         "#;
 
-        let responses: Vec<responses::HashQueryResponse> = serde_json::from_str(&response).unwrap();
+        let responses: Vec<responses::HashQueryResponse> = serde_json::from_str(response).unwrap();
 
         assert_eq!(responses[0].message, Some("Not found".to_string()));
     }
@@ -248,7 +248,7 @@ mod tests {
         ]
         "#;
 
-        let responses: Vec<responses::HashQueryResponse> = serde_json::from_str(&response).unwrap();
+        let responses: Vec<responses::HashQueryResponse> = serde_json::from_str(response).unwrap();
 
         assert_eq!(
             responses[0].hash.md5,
@@ -278,8 +278,8 @@ mod tests {
         }
         "#;
 
-        let response1: responses::GetLicense = serde_json::from_str(&response1).unwrap();
-        let response2: responses::GetLicense = serde_json::from_str(&response2).unwrap();
+        let response1: responses::GetLicense = serde_json::from_str(response1).unwrap();
+        let response2: responses::GetLicense = serde_json::from_str(response2).unwrap();
 
         assert_eq!(response1.full_name, "MIT License");
         assert_eq!(response1.risk, None);
