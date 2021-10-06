@@ -67,7 +67,7 @@ pub enum FossologyError {
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
-pub enum FossologyResponse<T> {
+enum FossologyResponse<T> {
     Response(T),
     ApiError(Info),
 }
@@ -85,7 +85,7 @@ impl<T> FossologyResponse<T> {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct Info {
+struct Info {
     pub code: i32,
     pub message: String,
     #[serde(rename = "type")]
@@ -93,7 +93,7 @@ pub struct Info {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct InfoWithNumber {
+struct InfoWithNumber {
     pub code: i32,
     pub message: i32,
     #[serde(rename = "type")]

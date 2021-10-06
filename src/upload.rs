@@ -44,10 +44,7 @@ pub fn new_upload_from_file<P: AsRef<Path>>(
 /// - Error while sending request, redirect loop was detected or redirect limit was exhausted.
 /// - Response can't be serialized to [`Upload`] or [`Info`](crate::Info).
 /// - Response is not [`Upload`].
-pub fn get_upload_by_id(
-    fossology: &Fossology,
-    upload_id: i32,
-) -> Result<FossologyResponse<Upload>, FossologyError> {
+pub fn get_upload_by_id(fossology: &Fossology, upload_id: i32) -> Result<Upload, FossologyError> {
     let response = fossology
         .client
         .get(&format!("{}/uploads/{}", fossology.uri, upload_id))
@@ -55,7 +52,7 @@ pub fn get_upload_by_id(
         .send()?
         .json::<FossologyResponse<Upload>>()?;
 
-    Ok(response)
+    response.return_response_or_error()
 }
 
 pub struct NewUpload {
@@ -80,7 +77,8 @@ pub struct Upload {
     #[serde(rename = "uploaddate")]
     pub upload_date: String,
 
-    pub assignee: i32,
+    #[serde(default)]
+    pub assignee: Option<i32>,
 
     pub hash: Hash,
 }
@@ -164,7 +162,13 @@ impl Hash {
 
 #[cfg(test)]
 mod test {
-    use crate::{auth::test::create_test_fossology_with_writetoken, utilities::hash256_for_path};
+    use std::{thread, time::Duration};
+
+    use crate::{
+        auth::test::create_test_fossology_with_writetoken,
+        job::{get_jobs, JobStatus},
+        utilities::hash256_for_path,
+    };
 
     use super::*;
 
@@ -188,5 +192,23 @@ mod test {
         let filesearch = filesearch(&fossology, &hashes, None).unwrap();
 
         assert!(filesearch[0].uploads.contains(&upload.upload_id));
+    }
+
+    #[test]
+    fn upload_is_retrievable_by_id() {
+        let fossology = create_test_fossology_with_writetoken("http://localhost:8080/repo/api/v1");
+
+        let upload =
+            new_upload_from_file(&fossology, 1, "tests/data/base-files_11.tar.xz").unwrap();
+
+        while get_jobs(&fossology, Some(upload.upload_id), None, None, None).unwrap()[0].status
+            == JobStatus::Processing
+        {
+            thread::sleep(Duration::from_secs(1));
+        }
+
+        let upload = get_upload_by_id(&fossology, upload.upload_id).unwrap();
+
+        assert_eq!(upload.folder_id, 1);
     }
 }
