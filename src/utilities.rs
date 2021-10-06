@@ -2,10 +2,12 @@
 //
 // SPDX-License-Identifier: MIT
 
+#[cfg(test)]
+use sha2::{Digest, Sha256};
+#[cfg(test)]
 use std::{fs::File, io, path::Path};
 
-use sha2::{Digest, Sha256};
-
+#[cfg(test)]
 pub(crate) fn hash256_for_path<P: AsRef<Path>>(path: P) -> String {
     let mut file = File::open(path).unwrap();
     let mut sha256 = Sha256::new();
