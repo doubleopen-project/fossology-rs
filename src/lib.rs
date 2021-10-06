@@ -16,7 +16,7 @@
 
 use log::error;
 use reqwest::blocking::{Client, RequestBuilder};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use version_compare::{CompOp, VersionCompare};
 
 use crate::info::{ApiInformation, ApiInformationV1};
@@ -98,15 +98,6 @@ pub struct InfoWithNumber {
     pub message: i32,
     #[serde(rename = "type")]
     pub error_type: String,
-}
-
-// TODO: Can be deleted.
-/// Objects in downloads-folder to be uploaded to Fossology.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct UploadObject {
-    path: String,
-    sha256: String,
-    exists_in_fossology: bool,
 }
 
 impl Fossology {
