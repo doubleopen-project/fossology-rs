@@ -16,8 +16,13 @@ pub fn get_license(
     short_name: &str,
     group_name: Option<&str>,
 ) -> Result<License, FossologyError> {
-    let mut builder = fossology.init_get_with_token(&format!("license/{}", short_name));
-
+    let mut builder = if fossology.version_is_at_least("1.3.0")? {
+        fossology.init_get_with_token(&format!("license/{}", short_name))
+    } else {
+        fossology
+            .init_get_with_token("license")
+            .header("shortName", short_name)
+    };
     builder = if let Some(group_name) = group_name {
         builder.header("groupName", group_name)
     } else {
@@ -48,9 +53,11 @@ pub struct License {
     pub short_name: String,
     pub full_name: String,
     pub text: String,
-    #[serde(default)]
     pub risk: Option<i32>,
-    pub is_candidate: bool,
+
+    /// Field was introduced in API 1.3.0.
+    #[serde(default)]
+    pub is_candidate: Option<bool>,
 }
 
 #[cfg(test)]
