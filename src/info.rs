@@ -12,7 +12,7 @@ use crate::{Fossology, FossologyError, FossologyResponse};
 /// - Response can't be serialized to [`ApiInformation`] or [`Info`](crate::Info).
 /// - Response is not [`ApiInformation`].
 pub fn info(fossology: &Fossology) -> Result<ApiInformation, FossologyError> {
-    if fossology.version_is_at_least("1.3.3")? {
+    if !fossology.version_is_at_least("1.3.3")? {
         return Err(FossologyError::UnsupportedVersion);
     };
 
@@ -62,7 +62,7 @@ pub struct ApiLicense {
 /// - Response can't be serialized to [`Health`] or [`Info`](crate::Info).
 /// - Response is not [`Health`].
 pub fn health(fossology: &Fossology) -> Result<Health, FossologyError> {
-    if fossology.version_is_at_least("1.3.3")? {
+    if !fossology.version_is_at_least("1.3.3")? {
         return Err(FossologyError::UnsupportedVersion);
     };
 
