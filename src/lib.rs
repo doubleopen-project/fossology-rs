@@ -12,7 +12,7 @@ use api_objects::responses;
 use log::{debug, error, info};
 use reqwest::blocking::{multipart::Form, Client, RequestBuilder};
 use serde::{Deserialize, Serialize};
-use std::{fs::read_dir, num::TryFromIntError, path::Path, thread, time};
+use std::{fs::read_dir, path::Path, thread, time};
 use time::Duration;
 use utilities::hash256_for_path;
 
@@ -45,8 +45,8 @@ pub enum FossologyError {
     #[error(transparent)]
     RequestError(#[from] reqwest::Error),
 
-    #[error(transparent)]
-    IntConversionError(#[from] TryFromIntError),
+    #[error("Error: {0}")]
+    Other(String),
 }
 
 #[derive(Debug, Deserialize)]

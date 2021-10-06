@@ -6,13 +6,17 @@ use serde::Deserialize;
 
 use crate::{Fossology, FossologyError, FossologyResponse};
 
-pub fn info(fossology: &Fossology) -> Result<FossologyResponse<ApiInformation>, FossologyError> {
+pub fn info(fossology: &Fossology) -> Result<ApiInformation, FossologyError> {
     let response: FossologyResponse<ApiInformation> = fossology
         .client
         .get(&format!("{}/info", fossology.uri))
         .send()?
         .json()?;
-    Ok(response)
+
+    match response {
+        FossologyResponse::Response(res) => Ok(res),
+        FossologyResponse::ApiError(err) => Err(FossologyError::Other(err.message)),
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -31,13 +35,16 @@ pub struct ApiLicense {
     pub url: String,
 }
 
-pub fn health(fossology: &Fossology) -> Result<FossologyResponse<Health>, FossologyError> {
+pub fn health(fossology: &Fossology) -> Result<Health, FossologyError> {
     let response: FossologyResponse<Health> = fossology
         .client
         .get(&format!("{}/health", fossology.uri))
         .send()?
         .json()?;
-    Ok(response)
+    match response {
+        FossologyResponse::Response(res) => Ok(res),
+        FossologyResponse::ApiError(res) => Err(FossologyError::Other(res.message)),
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -62,25 +69,17 @@ mod test {
 
         let info = info(&fossology).unwrap();
 
-        if let FossologyResponse::Response(response) = info {
-            assert_eq!(response.name, "FOSSology API");
-        } else {
-            panic!("No response");
-        }
+        assert_eq!(info.name, "FOSSology API");
     }
 
     #[test]
     fn get_health() {
         let fossology = Fossology::new("http://localhost:8080/repo/api/v1", "token");
 
-        let info = health(&fossology).unwrap();
+        let health = health(&fossology).unwrap();
 
-        if let FossologyResponse::Response(response) = info {
-            assert_eq!(response.status, "OK");
-            assert_eq!(response.scheduler.status, "OK");
-            assert_eq!(response.db.status, "OK");
-        } else {
-            panic!("No response");
-        }
+        assert_eq!(health.status, "OK");
+        assert_eq!(health.scheduler.status, "OK");
+        assert_eq!(health.db.status, "OK");
     }
 }

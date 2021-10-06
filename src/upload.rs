@@ -13,7 +13,7 @@ pub fn new_upload_from_file<P: AsRef<Path>>(
     fossology: &Fossology,
     folder_id: i32,
     path_to_file: P,
-) -> Result<FossologyResponse<NewUpload>, FossologyError> {
+) -> Result<NewUpload, FossologyError> {
     let form = Form::new().file("fileInput", &path_to_file)?;
 
     let response = fossology
@@ -23,13 +23,14 @@ pub fn new_upload_from_file<P: AsRef<Path>>(
         .header("folderId", folder_id.to_string())
         .multipart(form)
         .send()?
-        .json::<InfoWithNumber>()?;
+        .json::<FossologyResponse<InfoWithNumber>>()?;
 
-    let new_upload = NewUpload {
-        upload_id: response.message,
-    };
-
-    Ok(FossologyResponse::Response(new_upload))
+    match response {
+        FossologyResponse::Response(res) => Ok(NewUpload {
+            upload_id: res.message,
+        }),
+        FossologyResponse::ApiError(err) => Err(FossologyError::Other(err.message)),
+    }
 }
 
 pub fn get_upload_by_id(
@@ -151,13 +152,7 @@ mod test {
     fn create_upload_from_file() {
         let fossology = create_test_fossology_with_writetoken("http://localhost:8080/repo/api/v1");
 
-        let upload =
-            new_upload_from_file(&fossology, 1, "tests/data/base-files_11.tar.xz").unwrap();
-
-        match upload {
-            FossologyResponse::Response(_) => {}
-            FossologyResponse::ApiError(_) => panic!(),
-        }
+        new_upload_from_file(&fossology, 1, "tests/data/base-files_11.tar.xz").unwrap();
     }
 
     #[test]
@@ -165,9 +160,8 @@ mod test {
         let fossology = create_test_fossology_with_writetoken("http://localhost:8080/repo/api/v1");
         let sha256 = hash256_for_path("tests/data/base-files_11.tar.xz");
 
-        let upload = new_upload_from_file(&fossology, 1, "tests/data/base-files_11.tar.xz")
-            .unwrap()
-            .response_unchecked();
+        let upload =
+            new_upload_from_file(&fossology, 1, "tests/data/base-files_11.tar.xz").unwrap();
 
         let hashes = vec![Hash::from_sha256(&sha256)];
 

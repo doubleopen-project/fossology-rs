@@ -7,18 +7,18 @@ use serde::{Deserialize, Serialize};
 
 use crate::{Fossology, FossologyError, FossologyResponse};
 
-pub fn tokens(
-    fossology: &Fossology,
-    params: &TokensParameters,
-) -> Result<FossologyResponse<Token>, FossologyError> {
+pub fn tokens(fossology: &Fossology, params: &TokensParameters) -> Result<Token, FossologyError> {
     let response = fossology
         .client
         .post(&format!("{}/tokens", fossology.uri))
         .json(&params)
         .send()?
-        .json()?;
+        .json::<FossologyResponse<Token>>()?;
 
-    Ok(response)
+    match response {
+        FossologyResponse::Response(res) => Ok(res),
+        FossologyResponse::ApiError(err) => Err(FossologyError::Other(err.message)),
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -83,15 +83,12 @@ pub(crate) mod test {
             NaiveDate::from_ymd(2021, 10, 30),
         );
 
-        let info = tokens(&fossology, &params).unwrap();
+        let token = tokens(&fossology, &params).unwrap();
 
-        match info {
-            FossologyResponse::Response(response) => Fossology::new(
-                "http://localhost:8080/repo/api/v1",
-                response.authorization.strip_prefix("Bearer ").unwrap(),
-            ),
-            FossologyResponse::ApiError(_) => panic!(),
-        }
+        Fossology::new(
+            "http://localhost:8080/repo/api/v1",
+            token.authorization.strip_prefix("Bearer ").unwrap(),
+        )
     }
 
     #[test]
@@ -112,15 +109,9 @@ pub(crate) mod test {
             NaiveDate::from_ymd(2021, 10, 30),
         );
 
-        dbg!(&params.token_expire);
+        let token = tokens(&fossology, &params).unwrap();
 
-        let info = tokens(&fossology, &params).unwrap();
-
-        if let FossologyResponse::Response(response) = info {
-            assert!(response.authorization.starts_with("Bearer"));
-        } else {
-            panic!("No response");
-        }
+        assert!(token.authorization.starts_with("Bearer"));
     }
 
     #[test]
@@ -141,12 +132,8 @@ pub(crate) mod test {
             NaiveDate::from_ymd(2021, 10, 30),
         );
 
-        let info = tokens(&fossology, &params).unwrap();
+        let tokens = tokens(&fossology, &params).unwrap();
 
-        if let FossologyResponse::Response(response) = info {
-            assert!(response.authorization.starts_with("Bearer"));
-        } else {
-            panic!("No response");
-        }
+        assert!(tokens.authorization.starts_with("Bearer"));
     }
 }

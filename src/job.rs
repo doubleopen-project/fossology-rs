@@ -12,7 +12,7 @@ pub fn get_jobs(
     group_name: Option<String>,
     limit: Option<i32>,
     page: Option<i32>,
-) -> Result<FossologyResponse<Vec<Job>>, FossologyError> {
+) -> Result<Vec<Job>, FossologyError> {
     let mut builder = fossology.init_get_with_token("jobs");
 
     builder = if let Some(upload_id) = upload_id {
@@ -39,9 +39,12 @@ pub fn get_jobs(
         builder
     };
 
-    let response = builder.send()?;
+    let response = builder.send()?.json::<FossologyResponse<Vec<Job>>>()?;
 
-    Ok(response.json()?)
+    match response {
+        FossologyResponse::Response(res) => Ok(res),
+        FossologyResponse::ApiError(err) => Err(FossologyError::Other(err.message)),
+    }
 }
 
 pub fn schedule_analysis(
@@ -50,7 +53,7 @@ pub fn schedule_analysis(
     upload_id: i32,
     group_name: Option<String>,
     analysis: &ScheduleAgents,
-) -> Result<FossologyResponse<ScheduledJob>, FossologyError> {
+) -> Result<ScheduledJob, FossologyError> {
     let mut builder = fossology.init_post_with_token("jobs").json(analysis);
 
     builder = if let Some(group_name) = group_name {
@@ -64,11 +67,12 @@ pub fn schedule_analysis(
         .header("uploadId", upload_id.to_string())
         .json(analysis)
         .send()?
-        .json::<InfoWithNumber>()?;
+        .json::<FossologyResponse<InfoWithNumber>>()?;
 
-    Ok(FossologyResponse::Response(ScheduledJob {
-        id: response.message,
-    }))
+    match response {
+        FossologyResponse::Response(res) => Ok(ScheduledJob { id: res.message }),
+        FossologyResponse::ApiError(err) => Err(FossologyError::Other(err.message)),
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -156,13 +160,10 @@ mod test {
     fn get_unarchive_job() {
         let fossology = create_test_fossology_with_writetoken("http://localhost:8080/repo/api/v1");
 
-        let upload = new_upload_from_file(&fossology, 1, "tests/data/base-files_11.tar.xz")
-            .unwrap()
-            .response_unchecked();
+        let upload =
+            new_upload_from_file(&fossology, 1, "tests/data/base-files_11.tar.xz").unwrap();
 
-        let jobs = get_jobs(&fossology, Some(upload.upload_id), None, None, None)
-            .unwrap()
-            .response_unchecked();
+        let jobs = get_jobs(&fossology, Some(upload.upload_id), None, None, None).unwrap();
 
         assert_eq!(jobs.len(), 1);
         assert_eq!(jobs[0].status, JobStatus::Processing)
@@ -172,20 +173,14 @@ mod test {
     fn schedule_jobs() {
         let fossology = create_test_fossology_with_writetoken("http://localhost:8080/repo/api/v1");
 
-        let upload = new_upload_from_file(&fossology, 1, "tests/data/base-files_11.tar.xz")
-            .unwrap()
-            .response_unchecked();
+        let upload =
+            new_upload_from_file(&fossology, 1, "tests/data/base-files_11.tar.xz").unwrap();
 
-        let jobs = get_jobs(&fossology, Some(upload.upload_id), None, None, None)
-            .unwrap()
-            .response_unchecked();
+        let jobs = get_jobs(&fossology, Some(upload.upload_id), None, None, None).unwrap();
 
         assert_eq!(jobs.len(), 1);
 
-        while get_jobs(&fossology, Some(upload.upload_id), None, None, None)
-            .unwrap()
-            .response_unchecked()[0]
-            .status
+        while get_jobs(&fossology, Some(upload.upload_id), None, None, None).unwrap()[0].status
             == JobStatus::Processing
         {
             thread::sleep(Duration::from_secs(1));
@@ -198,13 +193,10 @@ mod test {
         schedule.analysis.ecc = true;
         schedule.analysis.keyword = true;
 
-        let scheduled_job = schedule_analysis(&fossology, 1, upload.upload_id, None, &schedule)
-            .unwrap()
-            .response_unchecked();
+        let scheduled_job =
+            schedule_analysis(&fossology, 1, upload.upload_id, None, &schedule).unwrap();
 
-        let jobs = get_jobs(&fossology, Some(upload.upload_id), None, None, None)
-            .unwrap()
-            .response_unchecked();
+        let jobs = get_jobs(&fossology, Some(upload.upload_id), None, None, None).unwrap();
 
         assert_eq!(jobs.len(), 2);
         assert!(jobs.iter().any(|j| j.id == scheduled_job.id));
