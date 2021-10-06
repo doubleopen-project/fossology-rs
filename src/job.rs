@@ -140,7 +140,6 @@ pub enum JobStatus {
     Processing,
 }
 
-
 #[cfg(test)]
 mod test {
     use std::{thread, time::Duration};

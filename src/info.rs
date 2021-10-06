@@ -2,7 +2,6 @@ use serde::Deserialize;
 
 use crate::{Fossology, FossologyError, FossologyResponse};
 
-
 pub fn info(fossology: &Fossology) -> Result<FossologyResponse<ApiInformation>, FossologyError> {
     let response: FossologyResponse<ApiInformation> = fossology
         .client
