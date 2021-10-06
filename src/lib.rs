@@ -172,6 +172,8 @@ impl Fossology {
 
 #[cfg(test)]
 mod tests {
+    use version_compare::{CompOp, VersionCompare};
+
     use super::Fossology;
 
     #[test]
@@ -179,5 +181,7 @@ mod tests {
         let fossology = Fossology::new("http://localhost:8080/repo/api/v1", "token").unwrap();
 
         assert_eq!(fossology.token, "token");
+        assert!(VersionCompare::compare_to(&fossology.version, "1.0.0", &CompOp::Ge).unwrap());
+        assert!(VersionCompare::compare_to(&fossology.version, "2.0.0", &CompOp::Lt).unwrap());
     }
 }
