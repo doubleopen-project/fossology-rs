@@ -17,6 +17,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      fossology:
+        image: fossology/fossology
+        ports:
+          - 8080:80
+
     steps:
       - uses: actions/checkout@v2
       - name: Build and run tests
