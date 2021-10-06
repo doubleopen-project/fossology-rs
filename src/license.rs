@@ -2,6 +2,11 @@ use serde::Deserialize;
 
 use crate::{Fossology, FossologyError, FossologyResponse};
 
+/// # Errors
+///
+/// - Error while sending request, redirect loop was detected or redirect limit was exhausted.
+/// - Response can't be serialized to [`License`] or [`Info`](crate::Info).
+/// - Response is not [`License`].
 pub fn get_license(
     fossology: &Fossology,
     short_name: &str,

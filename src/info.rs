@@ -6,6 +6,11 @@ use serde::Deserialize;
 
 use crate::{Fossology, FossologyError, FossologyResponse};
 
+/// # Errors
+///
+/// - Error while sending request, redirect loop was detected or redirect limit was exhausted.
+/// - Response can't be serialized to [`ApiInformation`] or [`Info`](crate::Info).
+/// - Response is not [`ApiInformation`].
 pub fn info(fossology: &Fossology) -> Result<ApiInformation, FossologyError> {
     let response: FossologyResponse<ApiInformation> = fossology
         .client
@@ -35,6 +40,11 @@ pub struct ApiLicense {
     pub url: String,
 }
 
+/// # Errors
+///
+/// - Error while sending request, redirect loop was detected or redirect limit was exhausted.
+/// - Response can't be serialized to [`Health`] or [`Info`](crate::Info).
+/// - Response is not [`Health`].
 pub fn health(fossology: &Fossology) -> Result<Health, FossologyError> {
     let response: FossologyResponse<Health> = fossology
         .client

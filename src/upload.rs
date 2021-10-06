@@ -9,6 +9,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::{Fossology, FossologyError, FossologyResponse, InfoWithNumber};
 
+/// # Errors
+///
+/// - File can't be opened.
+/// - Error while sending request, redirect loop was detected or redirect limit was exhausted.
+/// - Response can't be serialized to [`InfoWithNumber`] or [`Info`](crate::Info).
+/// - Response is not [`InfoWithNumber`].
 pub fn new_upload_from_file<P: AsRef<Path>>(
     fossology: &Fossology,
     folder_id: i32,
@@ -33,6 +39,11 @@ pub fn new_upload_from_file<P: AsRef<Path>>(
     }
 }
 
+/// # Errors
+///
+/// - Error while sending request, redirect loop was detected or redirect limit was exhausted.
+/// - Response can't be serialized to [`Upload`] or [`Info`](crate::Info).
+/// - Response is not [`Upload`].
 pub fn get_upload_by_id(
     fossology: &Fossology,
     upload_id: i32,
@@ -74,6 +85,11 @@ pub struct Upload {
     pub hash: Hash,
 }
 
+/// # Errors
+///
+/// - Error while sending request, redirect loop was detected or redirect limit was exhausted.
+/// - Response can't be serialized to [`Vec`] of [`FilesearchResponse`]s or [`Info`](crate::Info).
+/// - Response is not [`Vec`] of [`FilesearchResponse`]s.
 pub fn filesearch(
     fossology: &Fossology,
     hashes: &[Hash],

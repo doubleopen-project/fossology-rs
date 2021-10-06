@@ -6,6 +6,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::{Fossology, FossologyError, FossologyResponse, InfoWithNumber};
 
+/// # Errors
+///
+/// - Error while sending request, redirect loop was detected or redirect limit was exhausted.
+/// - Response can't be serialized to [`Vec`] of [`Job`]s or [`Info`](crate::Info).
+/// - Response is not [`Vec`] of [`Job`]s.
 pub fn get_jobs(
     fossology: &Fossology,
     upload_id: Option<i32>,
@@ -47,6 +52,11 @@ pub fn get_jobs(
     }
 }
 
+/// # Errors
+///
+/// - Error while sending request, redirect loop was detected or redirect limit was exhausted.
+/// - Response can't be serialized to [`ScheduledJob`] or [`Info`](crate::Info).
+/// - Response is not [`ScheduledJob`].
 pub fn schedule_analysis(
     fossology: &Fossology,
     folder_id: i32,
@@ -166,7 +176,7 @@ mod test {
         let jobs = get_jobs(&fossology, Some(upload.upload_id), None, None, None).unwrap();
 
         assert_eq!(jobs.len(), 1);
-        assert_eq!(jobs[0].status, JobStatus::Processing)
+        assert_eq!(jobs[0].status, JobStatus::Processing);
     }
 
     #[test]

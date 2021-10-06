@@ -7,6 +7,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::{Fossology, FossologyError, FossologyResponse};
 
+/// # Errors
+///
+/// - Error while sending request, redirect loop was detected or redirect limit was exhausted.
+/// - Response can't be serialized to [`Token`] or [`Info`](crate::Info).
+/// - Response is not [`Token`].
 pub fn tokens(fossology: &Fossology, params: &TokensParameters) -> Result<Token, FossologyError> {
     let response = fossology
         .client
@@ -67,7 +72,7 @@ pub(crate) mod test {
 
     use super::*;
 
-    pub(crate) fn create_test_fossology_with_writetoken(uri: &str) -> Fossology {
+    pub fn create_test_fossology_with_writetoken(uri: &str) -> Fossology {
         let fossology = Fossology::new(uri, "token");
         let token_name = rand::thread_rng()
             .sample_iter(&Alphanumeric)

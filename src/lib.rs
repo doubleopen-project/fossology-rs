@@ -6,7 +6,14 @@
 //!
 //! Module for communicating with Fossology's REST API.
 
-#![deny(clippy::all)]
+#![warn(clippy::all, clippy::pedantic, clippy::nursery, clippy::cargo)]
+#![allow(
+    clippy::must_use_candidate,
+    clippy::module_name_repetitions,
+    clippy::option_if_let_else,
+    clippy::struct_excessive_bools
+)]
+
 use log::error;
 use reqwest::blocking::{Client, RequestBuilder};
 use serde::{Deserialize, Serialize};
