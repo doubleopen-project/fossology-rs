@@ -17,9 +17,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        fossology: [3.10.0, 3.11.0]
+
     services:
       fossology:
-        image: fossology/fossology
+        image: fossology/fossology:${{ matrix.fossology }}
         ports:
           - 8080:80
 
