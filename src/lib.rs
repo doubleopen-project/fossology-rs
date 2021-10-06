@@ -18,6 +18,8 @@ use log::error;
 use reqwest::blocking::{Client, RequestBuilder};
 use serde::{Deserialize, Serialize};
 
+use crate::info::{ApiInformation, ApiInformationV1};
+
 pub mod auth;
 pub mod info;
 pub mod job;
@@ -36,6 +38,8 @@ pub struct Fossology {
 
     /// Reqwest client.
     client: Client,
+
+    version: String,
 }
 
 /// Error when interacting with Fossology.
@@ -53,6 +57,9 @@ pub enum FossologyError {
     #[error(transparent)]
     SerdeError(#[from] serde_json::Error),
 
+    #[error("Fossology version does not support the endpoint.")]
+    UnsupportedVersion,
+
     #[error("Error: {0}")]
     Other(String),
 }
@@ -62,6 +69,18 @@ pub enum FossologyError {
 pub enum FossologyResponse<T> {
     Response(T),
     ApiError(Info),
+}
+
+impl<T> FossologyResponse<T> {
+    #[allow(clippy::missing_const_for_fn)]
+    pub(crate) fn return_response_or_error(self) -> Result<T, FossologyError> {
+        match self {
+            FossologyResponse::Response(res) => Ok(res),
+            FossologyResponse::ApiError(err) => {
+                Err(FossologyError::UnexpectedResponse(err.message))
+            }
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -91,11 +110,40 @@ pub struct UploadObject {
 
 impl Fossology {
     /// Initialize Fossology with URI and token.
-    pub fn new(uri: &str, token: &str) -> Self {
-        Self {
+    ///
+    /// # Errors
+    ///
+    /// - API version can't be retrieved.
+    pub fn new(uri: &str, token: &str) -> Result<Self, FossologyError> {
+        let version = Self::version(uri, token)?;
+        let fossology = Self {
             uri: uri.to_owned(),
             token: token.to_owned(),
             client: Client::new(),
+            version,
+        };
+
+        Ok(fossology)
+    }
+
+    fn version(uri: &str, token: &str) -> Result<String, FossologyError> {
+        let client = Client::new();
+        let info = client
+            .get(&format!("{}/info", uri))
+            .bearer_auth(token)
+            .send()?
+            .json::<ApiInformation>();
+        if let Ok(info) = info {
+            Ok(info.version)
+        } else {
+            let version = client
+                .get(&format!("{}/version", uri))
+                .send()?
+                .json::<ApiInformationV1>();
+            match version {
+                Ok(version) => Ok(version.version),
+                Err(err) => Err(FossologyError::Other(err.to_string())),
+            }
         }
     }
 
@@ -103,6 +151,10 @@ impl Fossology {
         self.client
             .get(&format!("{}/{}", self.uri, path))
             .bearer_auth(&self.token)
+    }
+
+    pub(crate) fn init_get(&self, path: &str) -> RequestBuilder {
+        self.client.get(&format!("{}/{}", self.uri, path))
     }
 
     pub(crate) fn init_post_with_token(&self, path: &str) -> RequestBuilder {
@@ -115,19 +167,11 @@ impl Fossology {
 #[cfg(test)]
 mod tests {
     use super::Fossology;
-    use reqwest::blocking::Client;
 
     #[test]
     fn fossology_is_created() {
-        let expected_fossology = Fossology {
-            token: "token".into(),
-            uri: "uri".into(),
-            client: Client::new(),
-        };
+        let fossology = Fossology::new("http://localhost:8080/repo/api/v1", "token").unwrap();
 
-        let fossology = Fossology::new("uri", "token");
-
-        assert_eq!(fossology.token, expected_fossology.token);
-        assert_eq!(fossology.uri, expected_fossology.uri);
+        assert_eq!(fossology.token, "token");
     }
 }

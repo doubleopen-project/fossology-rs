@@ -73,7 +73,7 @@ pub(crate) mod test {
     use super::*;
 
     pub fn create_test_fossology_with_writetoken(uri: &str) -> Fossology {
-        let fossology = Fossology::new(uri, "token");
+        let fossology = Fossology::new(uri, "token").unwrap();
         let token_name = rand::thread_rng()
             .sample_iter(&Alphanumeric)
             .take(10)
@@ -94,11 +94,12 @@ pub(crate) mod test {
             "http://localhost:8080/repo/api/v1",
             token.authorization.strip_prefix("Bearer ").unwrap(),
         )
+        .unwrap()
     }
 
     #[test]
     fn generate_read_token() {
-        let fossology = Fossology::new("http://localhost:8080/repo/api/v1", "token");
+        let fossology = Fossology::new("http://localhost:8080/repo/api/v1", "token").unwrap();
 
         let token_name = rand::thread_rng()
             .sample_iter(&Alphanumeric)
@@ -121,7 +122,7 @@ pub(crate) mod test {
 
     #[test]
     fn generate_write_token() {
-        let fossology = Fossology::new("http://localhost:8080/repo/api/v1", "token");
+        let fossology = Fossology::new("http://localhost:8080/repo/api/v1", "token").unwrap();
 
         let token_name = rand::thread_rng()
             .sample_iter(&Alphanumeric)

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 use serde::Deserialize;
+use version_compare::{CompOp, VersionCompare};
 
 use crate::{Fossology, FossologyError, FossologyResponse};
 
@@ -12,16 +13,34 @@ use crate::{Fossology, FossologyError, FossologyResponse};
 /// - Response can't be serialized to [`ApiInformation`] or [`Info`](crate::Info).
 /// - Response is not [`ApiInformation`].
 pub fn info(fossology: &Fossology) -> Result<ApiInformation, FossologyError> {
-    let response: FossologyResponse<ApiInformation> = fossology
-        .client
-        .get(&format!("{}/info", fossology.uri))
-        .send()?
-        .json()?;
+    if VersionCompare::compare_to(&fossology.version, "1.3.3", &CompOp::Ge)
+        .map_err(|_| FossologyError::Other("Failed to compare versions".to_string()))?
+    {
+        let response: FossologyResponse<ApiInformation> =
+            fossology.init_get_with_token("info").send()?.json()?;
 
-    match response {
-        FossologyResponse::Response(res) => Ok(res),
-        FossologyResponse::ApiError(err) => Err(FossologyError::Other(err.message)),
+        response.return_response_or_error()
+    } else {
+        Err(FossologyError::UnsupportedVersion)
     }
+}
+
+/// # Errors
+///
+/// - Error while sending request, redirect loop was detected or redirect limit was exhausted.
+/// - Response can't be serialized to [`ApiInformationV1`] or [`Info`](crate::Info).
+/// - Response is not [`ApiInformationV1`].
+pub fn version(fossology: &Fossology) -> Result<ApiInformationV1, FossologyError> {
+    let response: FossologyResponse<ApiInformationV1> =
+        fossology.init_get("version").send()?.json()?;
+
+    response.return_response_or_error()
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ApiInformationV1 {
+    pub version: String,
+    pub security: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -75,16 +94,35 @@ mod test {
 
     #[test]
     fn api_information() {
-        let fossology = Fossology::new("http://localhost:8080/repo/api/v1", "token");
+        let fossology = Fossology::new("http://localhost:8080/repo/api/v1", "token").unwrap();
 
-        let info = info(&fossology).unwrap();
+        match info(&fossology) {
+            Ok(info) => {
+                assert_eq!(info.name, "FOSSology API");
+            }
+            Err(err) => {
+                match err {
+                    FossologyError::UnsupportedVersion => {
+                        // Ok
+                    }
+                    _ => panic!(),
+                }
+            }
+        };
+    }
 
-        assert_eq!(info.name, "FOSSology API");
+    #[test]
+    fn old_version() {
+        let fossology = Fossology::new("http://localhost:8080/repo/api/v1", "token").unwrap();
+
+        let info = version(&fossology).unwrap();
+
+        assert_eq!(info.security, vec!["bearerAuth"]);
     }
 
     #[test]
     fn get_health() {
-        let fossology = Fossology::new("http://localhost:8080/repo/api/v1", "token");
+        let fossology = Fossology::new("http://localhost:8080/repo/api/v1", "token").unwrap();
 
         let health = health(&fossology).unwrap();
 
