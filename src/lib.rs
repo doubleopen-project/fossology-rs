@@ -12,10 +12,14 @@ use api_objects::responses;
 use log::{debug, error, info};
 use reqwest::blocking::{multipart::Form, Client};
 use serde::{Deserialize, Serialize};
-use std::{fs::read_dir, path::Path, thread, time};
+use std::{fs::read_dir, num::TryFromIntError, path::Path, thread, time};
 use time::Duration;
 use utilities::hash256_for_path;
+
 pub mod api_objects;
+pub mod auth;
+pub mod info;
+pub mod upload;
 mod utilities;
 
 /// Fossology instance.
@@ -39,6 +43,32 @@ pub enum FossologyError {
 
     #[error(transparent)]
     RequestError(#[from] reqwest::Error),
+
+    #[error(transparent)]
+    IntConversionError(#[from] TryFromIntError),
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum FossologyResponse<T> {
+    Response(T),
+    ApiError(Info),
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Info {
+    pub code: i32,
+    pub message: String,
+    #[serde(rename = "type")]
+    pub error_type: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct InfoWithNumber {
+    pub code: i32,
+    pub message: i32,
+    #[serde(rename = "type")]
+    pub error_type: String,
 }
 
 // TODO: Can be deleted.
