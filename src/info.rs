@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 use serde::Deserialize;
-use version_compare::{CompOp, VersionCompare};
 
 use crate::{Fossology, FossologyError, FossologyResponse};
 
@@ -13,16 +12,14 @@ use crate::{Fossology, FossologyError, FossologyResponse};
 /// - Response can't be serialized to [`ApiInformation`] or [`Info`](crate::Info).
 /// - Response is not [`ApiInformation`].
 pub fn info(fossology: &Fossology) -> Result<ApiInformation, FossologyError> {
-    if VersionCompare::compare_to(&fossology.version, "1.3.3", &CompOp::Ge)
-        .map_err(|_| FossologyError::Other("Failed to compare versions".to_string()))?
-    {
-        let response: FossologyResponse<ApiInformation> =
-            fossology.init_get_with_token("info").send()?.json()?;
+    if fossology.version_is_at_least("1.3.3")? {
+        return Err(FossologyError::UnsupportedVersion);
+    };
 
-        response.return_response_or_error()
-    } else {
-        Err(FossologyError::UnsupportedVersion)
-    }
+    let response: FossologyResponse<ApiInformation> =
+        fossology.init_get_with_token("info").send()?.json()?;
+
+    response.return_response_or_error()
 }
 
 /// # Errors
@@ -65,6 +62,10 @@ pub struct ApiLicense {
 /// - Response can't be serialized to [`Health`] or [`Info`](crate::Info).
 /// - Response is not [`Health`].
 pub fn health(fossology: &Fossology) -> Result<Health, FossologyError> {
+    if fossology.version_is_at_least("1.3.3")? {
+        return Err(FossologyError::UnsupportedVersion);
+    };
+
     let response: FossologyResponse<Health> = fossology
         .client
         .get(&format!("{}/health", fossology.uri))
@@ -96,19 +97,12 @@ mod test {
     fn api_information() {
         let fossology = Fossology::new("http://localhost:8080/repo/api/v1", "token").unwrap();
 
-        match info(&fossology) {
-            Ok(info) => {
-                assert_eq!(info.name, "FOSSology API");
-            }
-            Err(err) => {
-                match err {
-                    FossologyError::UnsupportedVersion => {
-                        // Ok
-                    }
-                    _ => panic!(),
-                }
-            }
+        if !fossology.version_is_at_least("1.3.3").unwrap() {
+            return;
         };
+
+        let info = info(&fossology).unwrap();
+        assert_eq!(info.name, "FOSSology API");
     }
 
     #[test]
@@ -123,6 +117,10 @@ mod test {
     #[test]
     fn get_health() {
         let fossology = Fossology::new("http://localhost:8080/repo/api/v1", "token").unwrap();
+
+        if !fossology.version_is_at_least("1.3.3").unwrap() {
+            return;
+        };
 
         let health = health(&fossology).unwrap();
 

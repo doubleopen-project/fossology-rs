@@ -17,6 +17,7 @@
 use log::error;
 use reqwest::blocking::{Client, RequestBuilder};
 use serde::{Deserialize, Serialize};
+use version_compare::{CompOp, VersionCompare};
 
 use crate::info::{ApiInformation, ApiInformationV1};
 
@@ -145,6 +146,11 @@ impl Fossology {
                 Err(err) => Err(FossologyError::Other(err.to_string())),
             }
         }
+    }
+
+    pub(crate) fn version_is_at_least(&self, version: &str) -> Result<bool, FossologyError> {
+        VersionCompare::compare_to(&self.version, version, &CompOp::Ge)
+            .map_err(|_| FossologyError::Other("Failed to compare versions".to_string()))
     }
 
     pub(crate) fn init_get_with_token(&self, path: &str) -> RequestBuilder {
