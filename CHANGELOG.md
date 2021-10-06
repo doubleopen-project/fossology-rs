@@ -13,4 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Change `assignee` field in upload to `Option` as it is not supported on older versions of
+  Fossology API
+
 [unreleased]: https://github.com/doubleopen-project/fossology-rs/compare/v0.2.0...HEAD
