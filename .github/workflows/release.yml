@@ -13,13 +13,43 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      fossology:
+        image: fossology/fossology
+        ports:
+          - 8080:80
+
     steps:
       - uses: actions/checkout@v2
       - uses: Swatinem/rust-cache@v1
-      - name: Build
-        run: cargo build --verbose
-      - name: Run tests
-        run: cargo test --verbose
+      - uses: actions-rs/cargo@v1
+        name: Cargo build
+        if: always()
+        id: build
+        with:
+          command: test
+          args: --no-run
+      - uses: actions-rs/cargo@v1
+        name: Cargo test
+        if: always()
+        id: test
+        with:
+          command: test 
+          args: -- --include-ignored --test-threads=1
+      - uses: actions-rs/cargo@v1
+        name: Cargo clippy
+        if: always()
+        id: clippy
+        with:
+          command: clippy
+          args: -- -D warnings
+      - uses: actions-rs/cargo@v1
+        name: Cargo fmt
+        if: always()
+        id: format
+        with:
+          command: fmt
+          args: --all -- --check
 
   reuse:
     runs-on: ubuntu-latest
