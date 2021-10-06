@@ -19,7 +19,7 @@ jobs:
 
     strategy:
       matrix:
-        fossology: [3.10.0, 3.11.0]
+        fossology: [3.10.0, 3.11.0, latest]
 
     services:
       fossology:
