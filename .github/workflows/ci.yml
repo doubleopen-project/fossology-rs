@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build and run tests
-        run: cargo test --verbose
+        run: cargo test --verbose -- --test-threads=1
 
   reuse:
     runs-on: ubuntu-latest
