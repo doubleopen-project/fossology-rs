@@ -78,7 +78,7 @@ pub fn filesearch(
     fossology: &Fossology,
     hashes: &[Hash],
     group_name: Option<String>,
-) -> Result<FossologyResponse<Vec<FilesearchResponse>>, FossologyError> {
+) -> Result<Vec<FilesearchResponse>, FossologyError> {
     let mut builder = fossology.init_post_with_token("filesearch").json(hashes);
 
     builder = if let Some(group_name) = group_name {
@@ -87,9 +87,13 @@ pub fn filesearch(
         builder
     };
 
-    let response = builder.send()?;
-    let response = response.json::<FossologyResponse<Vec<FilesearchResponse>>>()?;
-    Ok(response)
+    let response = builder
+        .send()?
+        .json::<FossologyResponse<Vec<FilesearchResponse>>>()?;
+    match response {
+        FossologyResponse::Response(res) => Ok(res),
+        FossologyResponse::ApiError(err) => Err(FossologyError::Other(err.message)),
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -165,9 +169,7 @@ mod test {
 
         let hashes = vec![Hash::from_sha256(&sha256)];
 
-        let filesearch = filesearch(&fossology, &hashes, None)
-            .unwrap()
-            .response_unchecked();
+        let filesearch = filesearch(&fossology, &hashes, None).unwrap();
 
         assert!(filesearch[0].uploads.contains(&upload.upload_id));
     }

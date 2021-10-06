@@ -56,16 +56,6 @@ pub enum FossologyResponse<T> {
     ApiError(Info),
 }
 
-impl<T> FossologyResponse<T> {
-    pub fn response_unchecked(self) -> T {
-        if let FossologyResponse::Response(res) = self {
-            res
-        } else {
-            panic!()
-        }
-    }
-}
-
 #[derive(Debug, Deserialize)]
 pub struct Info {
     pub code: i32,
