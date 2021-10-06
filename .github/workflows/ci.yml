@@ -39,7 +39,7 @@ jobs:
         id: test
         with:
           command: test 
-          args: -- --include-ignored --test-threads==1
+          args: -- --include-ignored --test-threads=1
       - uses: actions-rs/cargo@v1
         name: Cargo clippy
         if: always()
