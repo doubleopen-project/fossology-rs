@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use reqwest::blocking::multipart::Form;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{Fossology, FossologyError, FossologyResponse, InfoWithNumber};
 
@@ -69,20 +69,77 @@ pub struct Upload {
     pub hash: Hash,
 }
 
-#[derive(Deserialize)]
+pub fn filesearch(
+    fossology: &Fossology,
+    hashes: &[Hash],
+    group_name: Option<String>,
+) -> Result<FossologyResponse<Vec<FilesearchResponse>>, FossologyError> {
+    let mut builder = fossology.init_post_with_token("filesearch").json(hashes);
+
+    builder = if let Some(group_name) = group_name {
+        builder.header("groupName", group_name)
+    } else {
+        builder
+    };
+
+    let response = builder.send()?;
+    let response = response.json::<FossologyResponse<Vec<FilesearchResponse>>>()?;
+    Ok(response)
+}
+
+#[derive(Deserialize, Debug)]
+pub struct FilesearchResponse {
+    pub hash: Hash,
+    pub findings: Option<Findings>,
+    pub uploads: Vec<i32>,
+    pub message: Option<String>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Findings {
+    pub scanner: Vec<String>,
+    pub conclusion: Vec<String>,
+    pub copyright: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Hash {
-    pub sha1: String,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub sha1: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub md5: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub sha256: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub size: Option<i32>,
+}
 
-    pub md5: String,
+impl Hash {
+    pub fn from_sha1(sha1: &str) -> Self {
+        Self {
+            sha1: Some(sha1.to_string()),
+            ..Self::default()
+        }
+    }
 
-    pub sha256: String,
+    pub fn from_sha256(sha256: &str) -> Self {
+        Self {
+            sha256: Some(sha256.to_string()),
+            ..Self::default()
+        }
+    }
 
-    pub size: i32,
+    pub fn from_md5(md5: &str) -> Self {
+        Self {
+            md5: Some(md5.to_string()),
+            ..Self::default()
+        }
+    }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::auth::test::create_test_fossology_with_writetoken;
+    use crate::{auth::test::create_test_fossology_with_writetoken, utilities::hash256_for_path};
 
     use super::*;
 
@@ -97,5 +154,23 @@ mod test {
             FossologyResponse::Response(_) => {}
             FossologyResponse::ApiError(_) => panic!(),
         }
+    }
+
+    #[test]
+    fn filesearch_for_archive() {
+        let fossology = create_test_fossology_with_writetoken("http://localhost:8080/repo/api/v1");
+        let sha256 = hash256_for_path("tests/data/base-files_11.tar.xz");
+
+        let upload = new_upload_from_file(&fossology, 1, "tests/data/base-files_11.tar.xz")
+            .unwrap()
+            .response_unchecked();
+
+        let hashes = vec![Hash::from_sha256(&sha256)];
+
+        let filesearch = filesearch(&fossology, &hashes, None)
+            .unwrap()
+            .response_unchecked();
+
+        assert!(filesearch[0].uploads.contains(&upload.upload_id));
     }
 }

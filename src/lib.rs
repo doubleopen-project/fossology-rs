@@ -10,7 +10,7 @@
 use self::api_objects::{requests::*, responses::*};
 use api_objects::responses;
 use log::{debug, error, info};
-use reqwest::blocking::{multipart::Form, Client};
+use reqwest::blocking::{multipart::Form, Client, RequestBuilder};
 use serde::{Deserialize, Serialize};
 use std::{fs::read_dir, num::TryFromIntError, path::Path, thread, time};
 use time::Duration;
@@ -19,6 +19,7 @@ use utilities::hash256_for_path;
 pub mod api_objects;
 pub mod auth;
 pub mod info;
+pub mod job;
 pub mod upload;
 mod utilities;
 
@@ -55,6 +56,16 @@ pub enum FossologyResponse<T> {
     ApiError(Info),
 }
 
+impl<T> FossologyResponse<T> {
+    pub fn response_unchecked(self) -> T {
+        if let FossologyResponse::Response(res) = self {
+            res
+        } else {
+            panic!()
+        }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct Info {
     pub code: i32,
@@ -88,6 +99,18 @@ impl Fossology {
             token: token.to_owned(),
             client: Client::new(),
         }
+    }
+
+    pub(crate) fn init_get_with_token(&self, path: &str) -> RequestBuilder {
+        self.client
+            .get(&format!("{}/{}", self.uri, path))
+            .bearer_auth(&self.token)
+    }
+
+    pub(crate) fn init_post_with_token(&self, path: &str) -> RequestBuilder {
+        self.client
+            .post(&format!("{}/{}", self.uri, path))
+            .bearer_auth(&self.token)
     }
 
     /// Upload a package to Fossology.
