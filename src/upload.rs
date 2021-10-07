@@ -44,7 +44,10 @@ pub fn new_upload_from_file<P: AsRef<Path>>(
 /// - Error while sending request, redirect loop was detected or redirect limit was exhausted.
 /// - Response can't be serialized to [`Upload`] or [`Info`](crate::Info).
 /// - Response is not [`Upload`].
-pub fn get_upload_by_id(fossology: &Fossology, upload_id: i32) -> Result<Upload, FossologyError> {
+pub fn get_upload_by_id(
+    fossology: &Fossology,
+    upload_id: i32,
+) -> Result<Option<Upload>, FossologyError> {
     let response = fossology
         .client
         .get(&format!("{}/uploads/{}", fossology.uri, upload_id))
@@ -52,7 +55,16 @@ pub fn get_upload_by_id(fossology: &Fossology, upload_id: i32) -> Result<Upload,
         .send()?
         .json::<FossologyResponse<Upload>>()?;
 
-    response.return_response_or_error()
+    match response {
+        FossologyResponse::Response(res) => Ok(Some(res)),
+        FossologyResponse::ApiError(err) => {
+            if err.message == "Upload does not exist" {
+                Ok(None)
+            } else {
+                Err(FossologyError::Other(err.message))
+            }
+        }
+    }
 }
 
 pub struct NewUpload {
@@ -207,8 +219,19 @@ mod test {
             thread::sleep(Duration::from_secs(1));
         }
 
-        let upload = get_upload_by_id(&fossology, upload.upload_id).unwrap();
+        let upload = get_upload_by_id(&fossology, upload.upload_id)
+            .unwrap()
+            .unwrap();
 
         assert_eq!(upload.folder_id, 1);
+    }
+
+    #[test]
+    fn non_existing_upload_id_returns_none() {
+        let fossology = create_test_fossology_with_writetoken("http://localhost:8080/repo/api/v1");
+
+        let upload = get_upload_by_id(&fossology, 99999).unwrap();
+
+        assert!(upload.is_none());
     }
 }
