@@ -113,11 +113,17 @@ pub fn filesearch(
         builder
     };
 
-    let response = builder
-        .send()?
-        .json::<FossologyResponse<Vec<FilesearchResponse>>>()?;
+    let response = builder.send()?;
+
+    let response = response.json::<FossologyResponse<Vec<FilesearchResponse>>>()?;
     match response {
-        FossologyResponse::Response(res) => Ok(res),
+        FossologyResponse::Response(res) => {
+            let res = res
+                .into_iter()
+                .filter(|i| i.message != Some("Not found".to_string()))
+                .collect();
+            Ok(res)
+        }
         FossologyResponse::ApiError(err) => Err(FossologyError::Other(err.message)),
     }
 }
@@ -126,6 +132,7 @@ pub fn filesearch(
 pub struct FilesearchResponse {
     pub hash: Hash,
     pub findings: Option<Findings>,
+    #[serde(default)]
     pub uploads: Vec<i32>,
     pub message: Option<String>,
 }
@@ -233,5 +240,15 @@ mod test {
         let upload = get_upload_by_id(&fossology, 99999).unwrap();
 
         assert!(upload.is_none());
+    }
+
+    #[test]
+    fn non_existing_hash_for_filesearch_works() {
+        let fossology = create_test_fossology_with_writetoken("http://localhost:8080/repo/api/v1");
+
+        let hashes = vec![Hash::from_sha256("doesnotexist")];
+        let filesearch = filesearch(&fossology, &hashes, None).unwrap();
+
+        assert!(filesearch.is_empty());
     }
 }
