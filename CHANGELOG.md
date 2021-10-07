@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Return `None` instead of error from `get_upload_by_id()` if the request is otherwise successful
+  but no upload with the given id exists.
+
 ### Fixed
 
 - Change `assignee` field in upload to `Option` as it is not supported on older versions of
