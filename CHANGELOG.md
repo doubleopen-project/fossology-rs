@@ -13,15 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- Return `None` instead of error from `get_upload_by_id()` if the request is otherwise successful
-  but no upload with the given id exists.
+## [0.2.1] - 2021-10-07
 
 ### Fixed
 
-- Change `assignee` field in upload to `Option` as it is not supported on older versions of
-  Fossology API
+- **BREAKING**: Change `assignee` field in upload to `Option` as it is not supported on older
+  versions of Fossology API.
 - Return empty `Vec` instead of error if files are not found with filesearch.
+- Return `None` instead of error from `get_upload_by_id()` if the request is otherwise successful
+  but no upload with the given id exists.
 
-[unreleased]: https://github.com/doubleopen-project/fossology-rs/compare/v0.2.0...HEAD
+[unreleased]: https://github.com/doubleopen-project/fossology-rs/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/doubleopen-project/fossology-rs/compare/v0.2.0...v0.2.1
