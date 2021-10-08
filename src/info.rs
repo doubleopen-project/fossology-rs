@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
+//! Info about the API.
+
 use serde::Deserialize;
 
 use crate::{Fossology, FossologyError, FossologyResponse};

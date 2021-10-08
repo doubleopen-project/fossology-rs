@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
+//! Create and get jobs.
+
 use serde::{Deserialize, Serialize};
 
 use crate::{Fossology, FossologyError, FossologyResponse, InfoWithNumber};

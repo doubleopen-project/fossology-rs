@@ -28,7 +28,7 @@ pub mod license;
 pub mod upload;
 mod utilities;
 
-/// Fossology instance.
+/// Client for the Fossology API.
 #[derive(Debug)]
 pub struct Fossology {
     /// API base uri.
@@ -40,6 +40,7 @@ pub struct Fossology {
     /// Reqwest client.
     client: Client,
 
+    /// Version of the Fossology API. Is retrieved during creation.
     version: String,
 }
 
@@ -101,7 +102,10 @@ struct InfoWithNumber {
 }
 
 impl Fossology {
-    /// Initialize Fossology with URI and token.
+    /// Creates a client for Fossology API.
+    /// 
+    /// Gets the version of the API during creation. The version is used to guard for endpoints that
+    /// are not supported in the version being accessed.
     ///
     /// # Errors
     ///
@@ -118,6 +122,8 @@ impl Fossology {
         Ok(fossology)
     }
 
+    /// Get the version of the API. Tries different endpoints to get version for older and newer
+    /// instances.
     fn version(uri: &str, token: &str) -> Result<String, FossologyError> {
         let client = Client::new();
         let info = client
@@ -139,21 +145,25 @@ impl Fossology {
         }
     }
 
+    /// Returns true if the API version is at least the given version.
     pub(crate) fn version_is_at_least(&self, version: &str) -> Result<bool, FossologyError> {
         VersionCompare::compare_to(&self.version, version, &CompOp::Ge)
             .map_err(|_| FossologyError::Other("Failed to compare versions".to_string()))
     }
 
+    /// Initializes `GET` request with the authorization token.
     pub(crate) fn init_get_with_token(&self, path: &str) -> RequestBuilder {
         self.client
             .get(&format!("{}/{}", self.uri, path))
             .bearer_auth(&self.token)
     }
 
+    /// Initializes `GET` request without the authorization token.
     pub(crate) fn init_get(&self, path: &str) -> RequestBuilder {
         self.client.get(&format!("{}/{}", self.uri, path))
     }
 
+    /// Initializes `POST` request with the authorization token.
     pub(crate) fn init_post_with_token(&self, path: &str) -> RequestBuilder {
         self.client
             .post(&format!("{}/{}", self.uri, path))

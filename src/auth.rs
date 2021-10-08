@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
+//! Authentication with the API.
+
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
@@ -26,6 +28,7 @@ pub fn tokens(fossology: &Fossology, params: &TokensParameters) -> Result<Token,
     }
 }
 
+/// Input parameters for retrieving authorization tokens.
 #[derive(Debug, Serialize)]
 pub struct TokensParameters {
     username: String,
@@ -35,6 +38,7 @@ pub struct TokensParameters {
     token_expire: NaiveDate,
 }
 
+/// Permissions for the requested token.
 #[derive(Debug, Serialize, Clone, Copy)]
 #[serde(rename_all = "lowercase")]
 pub enum TokenScope {
