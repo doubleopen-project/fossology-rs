@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2021-11-30
+
+### Fixed
+
+- Increase default timeout duration to 600 seconds.
+
 ## [0.2.1] - 2021-10-07
 
 ### Fixed
@@ -23,5 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Return `None` instead of error from `get_upload_by_id()` if the request is otherwise successful
   but no upload with the given id exists.
 
-[unreleased]: https://github.com/doubleopen-project/fossology-rs/compare/v0.2.1...HEAD
+[unreleased]: https://github.com/doubleopen-project/fossology-rs/compare/v0.2.2...HEAD
+[0.2.1]: https://github.com/doubleopen-project/fossology-rs/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/doubleopen-project/fossology-rs/compare/v0.2.0...v0.2.1
