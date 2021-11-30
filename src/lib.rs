@@ -17,6 +17,7 @@
 use log::error;
 use reqwest::blocking::{Client, RequestBuilder};
 use serde::Deserialize;
+use std::time::Duration;
 use version_compare::{CompOp, VersionCompare};
 
 use crate::info::{ApiInformation, ApiInformationV1};
@@ -112,10 +113,13 @@ impl Fossology {
     /// - API version can't be retrieved.
     pub fn new(uri: &str, token: &str) -> Result<Self, FossologyError> {
         let version = Self::version(uri, token)?;
+        let client = Client::builder()
+            .timeout(Duration::from_secs(600))
+            .build()?;
         let fossology = Self {
             uri: uri.to_owned(),
             token: token.to_owned(),
-            client: Client::new(),
+            client,
             version,
         };
 
