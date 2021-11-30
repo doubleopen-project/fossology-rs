@@ -72,6 +72,7 @@ pub struct Token {
 
 #[cfg(test)]
 pub(crate) mod test {
+    use chrono::{Duration, Utc};
     use rand::{distributions::Alphanumeric, Rng};
 
     use super::*;
@@ -84,12 +85,18 @@ pub(crate) mod test {
             .map(char::from)
             .collect::<String>();
 
+        let expiration_date = Utc::now()
+            .checked_add_signed(Duration::days(5))
+            .unwrap()
+            .naive_utc()
+            .date();
+
         let params = TokensParameters::new(
             "fossy",
             "fossy",
             &token_name,
             TokenScope::Write,
-            NaiveDate::from_ymd(2021, 10, 30),
+            expiration_date,
         );
 
         let token = tokens(&fossology, &params).unwrap();
@@ -116,7 +123,11 @@ pub(crate) mod test {
             "fossy",
             &token_name,
             TokenScope::Read,
-            NaiveDate::from_ymd(2021, 10, 30),
+            Utc::now()
+                .checked_add_signed(Duration::days(5))
+                .unwrap()
+                .naive_utc()
+                .date(),
         );
 
         let token = tokens(&fossology, &params).unwrap();
@@ -139,7 +150,11 @@ pub(crate) mod test {
             "fossy",
             &token_name,
             TokenScope::Write,
-            NaiveDate::from_ymd(2021, 10, 30),
+            Utc::now()
+                .checked_add_signed(Duration::days(5))
+                .unwrap()
+                .naive_utc()
+                .date(),
         );
 
         let tokens = tokens(&fossology, &params).unwrap();
