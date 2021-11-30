@@ -103,7 +103,7 @@ struct InfoWithNumber {
 
 impl Fossology {
     /// Creates a client for Fossology API.
-    /// 
+    ///
     /// Gets the version of the API during creation. The version is used to guard for endpoints that
     /// are not supported in the version being accessed.
     ///
