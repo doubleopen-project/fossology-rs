@@ -87,7 +87,7 @@ impl<T> FossologyResponse<T> {
 }
 
 #[derive(Debug, Deserialize)]
-struct Info {
+pub struct Info {
     pub code: i32,
     pub message: String,
     #[serde(rename = "type")]
@@ -95,7 +95,7 @@ struct Info {
 }
 
 #[derive(Debug, Deserialize)]
-struct InfoWithNumber {
+pub struct InfoWithNumber {
     pub code: i32,
     pub message: i32,
     #[serde(rename = "type")]
