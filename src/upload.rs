@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 //! Manage uploads.
-//! 
+//!
 use std::path::Path;
 
 use reqwest::blocking::multipart::Form;

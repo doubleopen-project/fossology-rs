@@ -86,7 +86,7 @@ impl<T> FossologyResponse<T> {
 }
 
 #[derive(Debug, Deserialize)]
-struct Info {
+pub struct Info {
     pub code: i32,
     pub message: String,
     #[serde(rename = "type")]
@@ -94,7 +94,7 @@ struct Info {
 }
 
 #[derive(Debug, Deserialize)]
-struct InfoWithNumber {
+pub struct InfoWithNumber {
     pub code: i32,
     pub message: i32,
     #[serde(rename = "type")]
@@ -103,7 +103,7 @@ struct InfoWithNumber {
 
 impl Fossology {
     /// Creates a client for Fossology API.
-    /// 
+    ///
     /// Gets the version of the API during creation. The version is used to guard for endpoints that
     /// are not supported in the version being accessed.
     ///
