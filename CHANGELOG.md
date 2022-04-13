@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.3] - 2022-04-13
+
 ### Added
 
 - Implement `Eq`, `PartialEq` and `Hash` for `Hash` struct.
@@ -33,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Return `None` instead of error from `get_upload_by_id()` if the request is otherwise successful
   but no upload with the given id exists.
 
-[unreleased]: https://github.com/doubleopen-project/fossology-rs/compare/v0.2.2...HEAD
-[0.2.1]: https://github.com/doubleopen-project/fossology-rs/compare/v0.2.1...v0.2.2
+[unreleased]: https://github.com/doubleopen-project/fossology-rs/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/doubleopen-project/fossology-rs/compare/v0.2.2...v0.2.3
+[0.2.2]: https://github.com/doubleopen-project/fossology-rs/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/doubleopen-project/fossology-rs/compare/v0.2.0...v0.2.1
