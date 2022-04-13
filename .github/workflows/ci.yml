@@ -14,14 +14,63 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test:
+  test_supported:
+    name: Test supported Fossology versions
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
 
       matrix:
-        fossology: [3.10.0, 3.11.0, 4.0.0, latest]
+        fossology: [3.10.0, 3.11.0, 4.0.0]
+
+    services:
+      fossology:
+        image: fossology/fossology:${{ matrix.fossology }}
+        ports:
+          - 8080:80
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v1
+      - uses: actions-rs/cargo@v1
+        name: Cargo build
+        if: always()
+        id: build
+        with:
+          command: test
+          args: --no-run
+      - uses: actions-rs/cargo@v1
+        name: Cargo test
+        if: always()
+        id: test
+        with:
+          command: test 
+          args: -- --include-ignored --test-threads=1
+      - uses: actions-rs/cargo@v1
+        name: Cargo clippy
+        if: always()
+        id: clippy
+        with:
+          command: clippy
+          args: -- -D warnings
+      - uses: actions-rs/cargo@v1
+        name: Cargo fmt
+        if: always()
+        id: format
+        with:
+          command: fmt
+          args: --all -- --check
+
+  test_latest:
+    name: Test latest Fossology version
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        fossology: [latest]
 
     services:
       fossology:
