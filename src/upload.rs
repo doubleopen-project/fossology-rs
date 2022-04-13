@@ -146,7 +146,7 @@ pub struct Findings {
     pub copyright: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Eq, PartialEq, Hash)]
 pub struct Hash {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub sha1: Option<String>,

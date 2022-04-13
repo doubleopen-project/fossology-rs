@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Implement `Eq`, `PartialEq` and `Hash` for `Hash` struct.
+
 ## [0.2.2] - 2021-11-30
 
 ### Fixed
